@@ -1,0 +1,8 @@
+leadgen-website/
+├── frontend/
+│   ├── index.html
+│   ├── main.js
+│   └── style.css
+└── backend/
+    ├── app.py
+    └── requirements.txt
