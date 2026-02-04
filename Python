@@ -1,0 +1,38 @@
+from flask import Flask, request, jsonify
+import requests
+from bs4 import BeautifulSoup
+
+app = Flask(__name__)
+
+@app.route('/fetch_lead', methods=['POST'])
+def fetch_lead():
+    data = request.json
+    company_name = data.get('companyName')
+    target_position = data.get('targetPosition')
+
+    # Placeholder: Fetch company website using Google search
+    company_website = f"https://{company_name.replace(' ', '').lower()}.com"
+
+    # Placeholder: Fetch company details from website
+    company_email = "info@" + company_website.split('//')[-1]
+    company_address = "Company Address Placeholder"
+
+    # Placeholder: Fetch target person (Google LinkedIn)
+    person_name = "John Doe"
+    position = target_position if target_position else "Position Placeholder"
+    linkedin_url = "https://linkedin.com/in/example"
+
+    lead = [{
+        "companyName": company_name,
+        "companyWebsite": company_website,
+        "companyEmail": company_email,
+        "companyAddress": company_address,
+        "personName": person_name,
+        "position": position,
+        "linkedinURL": linkedin_url
+    }]
+
+    return jsonify(lead)
+
+if __name__ == '__main__':
+    app.run(debug=True)
