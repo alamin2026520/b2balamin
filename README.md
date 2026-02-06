@@ -2,7 +2,7 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <title>AI Lead Genius | Final Stable Version</title>
+    <title>Lead Genius Pro | AI Fixed</title>
     <style>
         :root { --primary: #3b82f6; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; }
         body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; padding: 20px; }
@@ -23,20 +23,20 @@
 <div class="container">
     <div class="setup-box">
         <label>🔑 API Key: </label>
-        <input type="password" id="apiKeyInput" placeholder="এখানে API Key দিন">
-        <button class="save-btn" onclick="saveApiKey()">Save & Set</button>
+        <input type="password" id="apiKeyInput" placeholder="AIzaSyAyechkQ2c5muIfkJtar8v8v4-iE9E8-EM">
+        <button class="save-btn" onclick="saveApiKey()">Save Key</button>
         <span id="saveStatus" style="font-size:12px; margin-left:10px;"></span>
     </div>
 
     <div class="input-box">
-        <input type="text" id="company" style="flex:2" placeholder="কোম্পানির নাম (যেমন: Grameenphone)">
+        <input type="text" id="company" style="flex:2" placeholder="কোম্পানির নাম">
         <input type="text" id="role" style="flex:1" placeholder="পজিশন (যেমন: CEO)">
         <button class="action-btn" onclick="getAILeads()">🚀 লিড বের করো</button>
     </div>
 
-    <div id="loader" class="loader">⚙️ AI ইন্টারনেটে ডাটা খুঁজছে... একটু অপেক্ষা করুন...</div>
+    <div id="loader" class="loader">⚙️ AI ডাটা জেনারেট করছে... একটু অপেক্ষা করুন...</div>
 
-    <table>
+    <table id="leadTable">
         <thead>
             <tr>
                 <th>কোম্পানি ও সাইট</th>
@@ -53,7 +53,7 @@
 
 <script>
     window.onload = () => {
-        const saved = localStorage.getItem('gemini_api_key');
+        const saved = localStorage.getItem('AIzaSyAyechkQ2c5muIfkJtar8v8v4-iE9E8-EM');
         if(saved) {
             document.getElementById('apiKeyInput').value = saved;
             document.getElementById('saveStatus').innerText = "✅ সেভ আছে";
@@ -70,21 +70,24 @@
     }
 
     async function getAILeads() {
-        const key = localStorage.getItem('gemini_api_key');
+        const key = localStorage.getItem('AIzaSyAyechkQ2c5muIfkJtar8v8v4-iE9E8-EM');
         const company = document.getElementById('company').value.trim();
         const role = document.getElementById('role').value.trim();
 
-        if(!key) { alert("দয়া করে আগে API Key সেভ করুন!"); return; }
-        if(!company || !role) { alert("কোম্পানি এবং পজিশন দিন!"); return; }
+        if(!key) { alert("AIzaSyAyechkQ2c5muIfkJtar8v8v4-iE9E8-EM!"); return; }
+        if(!company || !role) { alert("সবগুলো ঘর পূরণ করুন!"); return; }
 
         document.getElementById('loader').style.display = 'block';
 
-        const prompt = `Give me lead generation data for company "${company}" and role "${role}". 
-        Include: official website, full name of a real person in this role, professional email, office phone, and address.
-        Important: Return data only in this JSON format: [{"company":"..","web":"..","name":"..","role":"..","email":"..","phone":"..","addr":".."}]`;
+        // প্রম্পট আরও ক্লিয়ার করা হয়েছে
+        const prompt = `Return a JSON array of lead for company "${company}" and role "${role}". 
+        Include fields: company, web, name, role, email, phone, addr. 
+        Only return the raw JSON code block. Example: [{"company":"..","web":"..","name":"..","role":"..","email":"..","phone":"..","addr":".."}]`;
 
         try {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
+            // ভার্সন v1 এবং মডেল gemini-1.5-flash ব্যবহার করা হয়েছে যা এখন স্টেবল
+            const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${key}`;
+            
             const res = await fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -99,9 +102,9 @@
 
             let responseText = data.candidates[0].content.parts[0].text;
             
-            // JSON ক্লিনিং লজিক (সবচেয়ে ইম্পর্টেন্ট)
+            // JSON ক্লিনিং যাতে ব্যাকটিক বা অন্য টেক্সট থাকলেও কাজ করে
             const match = responseText.match(/\[[\s\S]*\]/);
-            if (!match) throw new Error("AI সঠিক ফরম্যাটে ডাটা দিতে পারেনি। আবার চেষ্টা করুন।");
+            if (!match) throw new Error("AI সঠিক ডাটা ফরম্যাট দিতে পারেনি। আবার চেষ্টা করুন।");
             
             const cleanData = JSON.parse(match[0]);
 
@@ -109,7 +112,7 @@
             cleanData.forEach(item => {
                 const row = tbody.insertRow(0);
                 row.innerHTML = `
-                    <td><b>${item.company}</b><br><small><a href="${item.web}" target="_blank" style="color:#3b82f6;">${item.web}</a></small></td>
+                    <td><b>${item.company}</b><br><small><a href="${item.web.startsWith('http') ? item.web : 'https://'+item.web}" target="_blank" style="color:#3b82f6;">${item.web}</a></small></td>
                     <td><b>${item.name}</b><br><small>${item.role}</small></td>
                     <td>${item.email}<br>${item.phone}</td>
                     <td>${item.addr}</td>
@@ -133,7 +136,7 @@
         const blob = new Blob([csv.join("\n")], { type: "text/csv" });
         const a = document.createElement("a");
         a.href = window.URL.createObjectURL(blob);
-        a.download = "My_Leads.csv";
+        a.download = "Leads_Data.csv";
         a.click();
     }
 </script>
