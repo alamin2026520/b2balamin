@@ -2,90 +2,92 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <title>Lead Hunter Pro | Link Engine</title>
+    <title>AI Lead Genius | Powered by Gemini</title>
     <style>
         :root { --primary: #3b82f6; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; }
         body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; padding: 20px; }
-        .container { max-width: 1100px; margin: auto; }
-        .header { text-align: center; padding: 20px; background: linear-gradient(135deg, #1e40af, #3b82f6); border-radius: 12px; margin-bottom: 20px; }
-        .search-box { background: var(--card); padding: 25px; border-radius: 12px; border: 1px solid #334155; display: grid; grid-template-columns: 2fr 2fr 1fr; gap: 15px; }
-        input { padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; outline: none; }
-        button { background: #10b981; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        button:hover { background: #059669; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: var(--card); border-radius: 10px; overflow: hidden; }
-        th { background: #334155; color: #3b82f6; padding: 15px; text-align: left; }
-        td { padding: 15px; border-bottom: 1px solid #334155; font-size: 14px; }
-        
-        .btn-link { display: inline-block; padding: 6px 12px; margin: 2px; border-radius: 5px; text-decoration: none; font-size: 12px; font-weight: bold; }
-        .blue { background: #2563eb; color: white; }
-        .purple { background: #8b5cf6; color: white; }
-        .orange { background: #f59e0b; color: white; }
-        .download-area { margin-top: 20px; text-align: right; }
+        .container { max-width: 1000px; margin: auto; }
+        .setup-box { background: #1e40af; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
+        .input-box { background: var(--card); padding: 25px; border-radius: 15px; display: flex; gap: 10px; margin-bottom: 20px; }
+        input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; }
+        button { background: #10b981; color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 10px; overflow: hidden; }
+        th, td { padding: 15px; border-bottom: 1px solid #334155; text-align: left; }
+        th { background: #334155; color: var(--primary); }
+        .loader { display: none; text-align: center; color: #f59e0b; margin: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="header">
-        <h1>🚀 Lead Hunter Pro</h1>
-        <p>কোম্পানি ও পার্সন প্রোফাইল লিঙ্ক জেনারেটর</p>
+    <div class="setup-box">
+        <label>AIzaSyDLFs8mwx9W5_twBQh2l-VGKl9aBsBFeSQ </label>
+        <input type="password" id="apiKey" placeholder="এখানে API Key পেস্ট করুন">
     </div>
 
-    <div class="search-box">
-        <input type="text" id="compName" placeholder="কোম্পানির নাম (যেমন: Tesla)">
-        <input type="text" id="jobTitle" placeholder="পজিশন (যেমন: Marketing Manager)">
-        <button onclick="generateLeads()">জেনারেশন শুরু করুন</button>
+    <div class="input-box">
+        <input type="text" id="company" placeholder="কোম্পানির নাম (যেমন: Microsoft)">
+        <input type="text" id="role" placeholder="টার্গেট পজিশন (যেমন: HR Manager)">
+        <button onclick="getAILeads()">AI দিয়ে লিড বের করো</button>
     </div>
 
-    <table>
+    <div id="loader" class="loader">🔍 AI তথ্য খুঁজছে... কয়েক সেকেন্ড সময় দিন...</div>
+
+    <table id="leadTable">
         <thead>
             <tr>
-                <th>কোম্পানি</th>
-                <th>টার্গেট পজিশন</th>
-                <th>কোম্পানি তথ্য লিঙ্ক</th>
-                <th>পার্সন প্রোফাইল লিঙ্ক</th>
+                <th>কোম্পানি ও ওয়েবসাইট</th>
+                <th>টার্গেট ব্যক্তি</th>
+                <th>ইমেইল/ফোন</th>
+                <th>অ্যাড্রেস</th>
             </tr>
         </thead>
-        <tbody id="leadTable">
-            </tbody>
+        <tbody id="tableBody"></tbody>
     </table>
-
-    <div class="download-area">
-        <button onclick="downloadCSV()" style="background: #4b5563;">📥 এক্সেল ফাইল ডাউনলোড (CSV)</button>
-    </div>
+    <br>
+    <button style="background: #6366f1;" onclick="downloadCSV()">CSV ডাউনলোড করুন</button>
 </div>
 
 <script>
-    function generateLeads() {
-        const company = document.getElementById('compName').value;
-        const title = document.getElementById('jobTitle').value;
+    async function getAILeads() {
+        const apiKey = document.getElementById('apiKey').value;
+        const company = document.getElementById('company').value;
+        const role = document.getElementById('role').value;
 
-        if(!company || !title) { alert("দয়া করে নাম এবং পজিশন দুটোই দিন"); return; }
+        if (!apiKey || !company || !role) { alert("সবগুলো ঘর পূরণ করুন!"); return; }
 
-        const table = document.getElementById('leadTable');
-        const row = table.insertRow(0);
+        document.getElementById('loader').style.display = 'block';
 
-        // ১. কোম্পানির অফিসিয়াল ওয়েবসাইট ও কন্টাক্ট লিঙ্ক জেনারেটর
-        const webLink = `https://www.google.com/search?q=${company}+official+website+contact+phone`;
-        
-        // ২. টার্গেটেড পার্সনের প্রোফাইল লিঙ্ক (LinkedIn Deep Search)
-        const personLink = `https://www.google.com/search?q=site:linkedin.com/in+"${title}"+"${company}"`;
-        
-        // ৩. কোম্পানির ইমেইল ফরম্যাট খোঁজার লিঙ্ক
-        const emailPattern = `https://www.google.com/search?q="${company}"+email+format+OR+"@${company.toLowerCase().replace(/\s/g, '')}.com"`;
+        const prompt = `Find details for lead generation. Company: ${company}, Target Role: ${role}. 
+        Return only a JSON array with: company_name, website, person_name, person_role, email_pattern, phone, address. 
+        Example format: [{"company_name": "...", "website": "...", "person_name": "...", "person_role": "...", "email_pattern": "...", "phone": "...", "address": "..."}]`;
 
-        row.innerHTML = `
-            <td><b>${company}</b></td>
-            <td>${title}</td>
-            <td>
-                <a href="${webLink}" target="_blank" class="btn-link blue">🌐 Website/Info</a>
-            </td>
-            <td>
-                <a href="${personLink}" target="_blank" class="btn-link purple">👤 LinkedIn Profile</a>
-                <a href="${emailPattern}" target="_blank" class="btn-link orange">📧 Email Hunter</a>
-            </td>
-        `;
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            });
+
+            const data = await response.json();
+            const text = data.candidates[0].content.parts[0].text;
+            const cleanData = JSON.parse(text.substring(text.indexOf('['), text.lastIndexOf(']') + 1));
+
+            const tbody = document.getElementById('tableBody');
+            cleanData.forEach(item => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td><b>${item.company_name}</b><br><small>${item.website}</small></td>
+                    <td><b>${item.person_name}</b><br><small>${item.person_role}</small></td>
+                    <td>${item.email_pattern}<br>${item.phone}</td>
+                    <td>${item.address}</td>
+                `;
+            });
+        } catch (error) {
+            console.error(error);
+            alert("তথ্য খুঁজে পাওয়া যায়নি বা API Key ভুল।");
+        }
+        document.getElementById('loader').style.display = 'none';
     }
 
     function downloadCSV() {
@@ -99,7 +101,7 @@
         const blob = new Blob([csv.join("\n")], { type: "text/csv" });
         const a = document.createElement("a");
         a.href = window.URL.createObjectURL(blob);
-        a.download = "Leads_Worksheet.csv";
+        a.download = "AI_Leads.csv";
         a.click();
     }
 </script>
